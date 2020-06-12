@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean name="humanSwordsman" class="koreniak.kingsluck.core.unit.Unit" scope="prototype">
+        <property name="efficiency">
+            <bean class="koreniak.kingsluck.core.Attribute">
+                <constructor-arg value="4"/>
+            </bean>
+        </property>
+
+        <property name="race" value="HUMAN"/>
+        <property name="unitType" value="SWORDSMAN"/>
+    </bean>
+
+    <bean name="humanSpearman" class="koreniak.kingsluck.core.unit.Unit" scope="prototype">
+        <property name="efficiency">
+            <bean class="koreniak.kingsluck.core.Attribute">
+                <constructor-arg value="3"/>
+            </bean>
+        </property>
+
+        <property name="race" value="HUMAN"/>
+        <property name="unitType" value="SPEARMAN"/>
+    </bean>
+
+    <bean name="humanArcher" class="koreniak.kingsluck.core.unit.Unit" scope="prototype">
+        <property name="efficiency">
+            <bean class="koreniak.kingsluck.core.Attribute">
+                <constructor-arg value="2"/>
+            </bean>
+        </property>
+
+        <property name="race" value="HUMAN"/>
+        <property name="unitType" value="ARCHER"/>
+    </bean>
+
+    <bean name="humanCavalry" class="koreniak.kingsluck.core.unit.Unit" scope="prototype">
+        <property name="efficiency">
+            <bean class="koreniak.kingsluck.core.Attribute">
+                <constructor-arg value="7"/>
+            </bean>
+        </property>
+
+        <property name="race" value="HUMAN"/>
+        <property name="unitType" value="CAVALRY"/>
+    </bean>
+</beans>

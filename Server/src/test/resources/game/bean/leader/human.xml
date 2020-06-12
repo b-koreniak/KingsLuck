@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util.xsd">
+    <bean name="humanCommander" class="koreniak.kingsluck.core.leader.Leader" scope="prototype">
+        <property name="deckUnits">
+            <bean class="java.util.LinkedList">
+                <constructor-arg>
+                    <list>
+                        <ref bean="humanSwordsman"/>
+                        <ref bean="humanSwordsman"/>
+                        <ref bean="humanSwordsman"/>
+                        <ref bean="humanArcher"/>
+                        <ref bean="humanArcher"/>
+                        <ref bean="humanSpearman"/>
+                        <ref bean="humanSpearman"/>
+                        <ref bean="humanCavalry"/>
+                    </list>
+                </constructor-arg>
+            </bean>
+        </property>
+
+        <property name="race" value="HUMAN"/>
+        <property name="leaderType" value="COMMANDER"/>
+    </bean>
+</beans>
