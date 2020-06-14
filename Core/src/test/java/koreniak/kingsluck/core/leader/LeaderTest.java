@@ -3,11 +3,31 @@ package koreniak.kingsluck.core.leader;
 import koreniak.kingsluck.core.Attribute;
 import koreniak.kingsluck.core.unit.Unit;
 import koreniak.kingsluck.core.unit.UnitType;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 public class LeaderTest {
+    private static final Logger LOGGER = LogManager.getLogger("LeaderTest");
+
+    @Rule
+    public TestWatcher testWatcher = new TestWatcher() {
+        @Override
+        protected void failed(Throwable e, Description description) {
+            LOGGER.error(description, e);
+        }
+
+        @Override
+        protected void succeeded(Description description) {
+            LOGGER.info(description);
+        }
+    };
+
     private Leader leader;
 
     private Unit unitSwordsman;

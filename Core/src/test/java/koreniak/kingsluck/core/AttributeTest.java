@@ -1,10 +1,31 @@
 package koreniak.kingsluck.core;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+
 
 public class AttributeTest {
+    private static final Logger LOGGER = LogManager.getLogger("AttributeTest");
+
+    @Rule
+    public TestWatcher testWatcher = new TestWatcher() {
+        @Override
+        protected void failed(Throwable e, Description description) {
+            LOGGER.error(description, e);
+        }
+
+        @Override
+        protected void succeeded(Description description) {
+            LOGGER.info(description);
+        }
+    };
+
     private Attribute attribute;
 
     @Before
