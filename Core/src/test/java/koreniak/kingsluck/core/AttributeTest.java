@@ -34,9 +34,9 @@ public class AttributeTest {
         Assert.assertEquals(11, attribute.getCurrentValue());
 
         attribute.modify(-3);
-        Assert.assertEquals(4, attribute.getCurrentValue());
+        Assert.assertEquals(8, attribute.getCurrentValue());
 
         attribute.modify(-4);
-        Assert.assertEquals(0, attribute.getCurrentValue());
+        Assert.assertEquals(4, attribute.getCurrentValue());
     }
 }
