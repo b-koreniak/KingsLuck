@@ -48,7 +48,7 @@ public class Attribute {
         if (modifier > 0) {
             inc(modifier);
         } else {
-            dec(modifier);
+            dec(Math.abs(modifier));
         }
     }
 
