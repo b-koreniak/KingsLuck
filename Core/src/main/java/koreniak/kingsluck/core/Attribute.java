@@ -32,23 +32,23 @@ public class Attribute {
         }
     }
 
-    private void incAttribute(int value) {
+    public void inc(int value) {
         for (int i = 0; i < value; i++) {
             inc();
         }
     }
 
-    private void decAttribute(int value) {
+    public void dec(int value) {
         for (int i = 0; i < value; i++) {
             dec();
         }
     }
 
-    public void modifyAttribute(int modifier) {
+    public void modify(int modifier) {
         if (modifier > 0) {
-            incAttribute(modifier);
+            inc(modifier);
         } else {
-            decAttribute(modifier);
+            dec(modifier);
         }
     }
 

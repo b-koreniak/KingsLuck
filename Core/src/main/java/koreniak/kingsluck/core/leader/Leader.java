@@ -40,21 +40,21 @@ public class Leader extends GameObject implements ArrayObserver<Unit> {
 
     @Override
     public void updateOnAdd(Unit unit) {
-        efficiency.modifyAttribute(unit.getEfficiency().getCurrentValue());
+        efficiency.modify(unit.getEfficiency().getCurrentValue());
     }
 
     @Override
     public void updateOnRemove(Unit unit) {
         if (unit.getEfficiency().getCurrentValue() > 0) {
-            efficiency.modifyAttribute(unit.getEfficiency().getCurrentValue() * -1);
+            efficiency.modify(unit.getEfficiency().getCurrentValue() * -1);
         } else {
-            efficiency.modifyAttribute(unit.getEfficiency().getCurrentValue());
+            efficiency.modify(unit.getEfficiency().getCurrentValue());
         }
     }
 
     @Override
     public void updateOnChange(Unit unit) {
-        efficiency.modifyAttribute(unit.getEfficiency().getCurrentValue());
+        efficiency.modify(unit.getEfficiency().getCurrentValue());
     }
 
     public Race getRace() {
