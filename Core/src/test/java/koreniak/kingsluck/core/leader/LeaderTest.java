@@ -71,7 +71,7 @@ public class LeaderTest {
     public void updateOnChange() {
         leader.updateOnChange(unitSwordsman);
 
-        Assert.assertEquals(unitSwordsman.getEfficiency().getCurrentValue(), leader.getEfficiency().getCurrentValue());
+        Assert.assertEquals(0, leader.getEfficiency().getCurrentValue());
     }
 
     @Test
