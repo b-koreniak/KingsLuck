@@ -54,7 +54,15 @@ public class Leader extends GameObject implements ArrayObserver<Unit> {
 
     @Override
     public void updateOnChange(Unit unit) {
-        efficiency.modify(unit.getEfficiency().getCurrentValue());
+        efficiency.dec(efficiency.getCurrentValue());
+
+        for (int i = 0; i < field.getRows(); i++) {
+            for (int j = 0; j < field.getColumns(); j++) {
+                if (field.get(i, j) != null) {
+                    efficiency.modify(field.get(i, j).getEfficiency().getCurrentValue());
+                }
+            }
+        }
     }
 
     public Race getRace() {

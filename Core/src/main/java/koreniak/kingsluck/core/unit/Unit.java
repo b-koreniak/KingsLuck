@@ -9,11 +9,16 @@ import koreniak.kingsluck.core.observer.Observer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Unit extends GameObject implements Observable<Unit> {
+public class Unit extends GameObject implements Observable<Unit>, Observer<Attribute> {
     private Attribute efficiency;
 
     private Race race;
     private UnitType unitType;
+
+    @Override
+    public void update(Attribute observable) {
+        notifyObservers();
+    }
 
     private List<Observer<Unit>> observers = new ArrayList<>();
 
@@ -69,5 +74,7 @@ public class Unit extends GameObject implements Observable<Unit> {
 
     public void setEfficiency(Attribute efficiency) {
         this.efficiency = efficiency;
+
+        this.efficiency.addObserver(this);
     }
 }

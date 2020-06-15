@@ -1,8 +1,13 @@
 package koreniak.kingsluck.core;
 
+import koreniak.kingsluck.core.observable.Observable;
+import koreniak.kingsluck.core.observer.Observer;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class Attribute {
+public class Attribute implements Observable<Attribute> {
     private int minValue;
     private int maxValue;
 
@@ -36,20 +41,50 @@ public class Attribute {
         for (int i = 0; i < value; i++) {
             inc();
         }
+
+        notifyObservers();
     }
 
     public void dec(int value) {
         for (int i = 0; i < value; i++) {
             dec();
         }
+
+        notifyObservers();
     }
 
     public void modify(int modifier) {
         if (modifier > 0) {
             inc(modifier);
         } else {
-            dec(modifier);
+            dec(Math.abs(modifier));
         }
+
+        notifyObservers();
+    }
+
+    private List<Observer<Attribute>> observers = new ArrayList<>();
+
+    @Override
+    public void addObserver(Observer<Attribute> observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer<Attribute> observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (Observer<Attribute> observer : observers) {
+            observer.update(this);
+        }
+    }
+
+    @Override
+    public void notifyObservers(Attribute object) {
+
     }
 
     public int getCurrentValue() {
