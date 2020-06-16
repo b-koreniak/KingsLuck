@@ -15,12 +15,12 @@ public class DuelManagerTest {
 
         Unit target = new Unit();
         target.setUnitType(UnitType.SPEARMAN);
-        target.setEfficiency(new Attribute(7));
+        target.setEfficiency(new Attribute(9));
 
         Unit deadUnit = DuelManager.duel(attacker, target);
 
-        Assert.assertEquals(0, attacker.getEfficiency().getCurrentValue());
-        Assert.assertEquals(2, target.getEfficiency().getCurrentValue());
+        Assert.assertEquals(3, attacker.getEfficiency().getCurrentValue());
+        Assert.assertEquals(0, target.getEfficiency().getCurrentValue());
 
         Assert.assertEquals(attacker, deadUnit);
     }
@@ -33,11 +33,11 @@ public class DuelManagerTest {
 
         Unit target = new Unit();
         target.setUnitType(UnitType.SPEARMAN);
-        target.setEfficiency(new Attribute(7));
+        target.setEfficiency(new Attribute(9));
 
         Unit deadUnit = DuelManager.attack(attacker, target);
 
         Assert.assertEquals(4, attacker.getEfficiency().getCurrentValue());
-        Assert.assertEquals(3, target.getEfficiency().getCurrentValue());
+        Assert.assertEquals(1, target.getEfficiency().getCurrentValue());
     }
 }

@@ -21,7 +21,7 @@ public class DuelManager {
     }
 
     public static Unit attack(Unit attacker, Unit target) {
-        int attackerDamage = attacker.getEfficiency().getCurrentValue();
+        int attackerDamage = attacker.getEfficiency().getCurrentValue() * getDamageModifier(attacker, target);
         target.getEfficiency().dec(attackerDamage);
 
         if (target.getEfficiency().getCurrentValue() <= 0) {
@@ -33,5 +33,50 @@ public class DuelManager {
         }
 
         return null;
+    }
+
+    private static int getDamageModifier(Unit attacker, Unit target) {
+        int damageModifier = 1;
+
+        switch (attacker.getUnitType()) {
+            case SWORDSMAN: {
+                switch (target.getUnitType()) {
+                    case SPEARMAN: {
+                        damageModifier = 2;
+                        break;
+                    }
+                }
+                break;
+            }
+            case SPEARMAN: {
+                switch (target.getUnitType()) {
+                    case CAVALRY: {
+                        damageModifier = 2;
+                        break;
+                    }
+                }
+                break;
+            }
+            case CAVALRY: {
+                switch (target.getUnitType()) {
+                    case ARCHER: {
+                        damageModifier = 2;
+                        break;
+                    }
+                }
+                break;
+            }
+            case ARCHER: {
+                switch (target.getUnitType()) {
+                    case SWORDSMAN: {
+                        damageModifier = 2;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        return damageModifier;
     }
 }
