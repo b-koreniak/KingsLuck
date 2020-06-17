@@ -5,9 +5,11 @@ import koreniak.kingsluck.core.observer.Observer;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
-public class ObservableArray<T extends Observable<T>> implements Observer<T> {
+public class ObservableArray<T extends Observable<T>> implements Observer<T>, Iterable<T> {
     private int rows;
     private int columns;
 
@@ -64,6 +66,11 @@ public class ObservableArray<T extends Observable<T>> implements Observer<T> {
         return true;
     }
 
+    @Override
+    public Iterator<T> iterator() {
+        return new ObservableArrayIterator();
+    }
+
     private List<ArrayObserver<T>> arrayObserverList = new ArrayList<>();
 
     public void addObserver(ArrayObserver<T> observer) {
@@ -107,5 +114,49 @@ public class ObservableArray<T extends Observable<T>> implements Observer<T> {
 
     public T[][] getArray() {
         return array;
+    }
+
+    private class ObservableArrayIterator implements Iterator<T> {
+        int rowPointer;
+        int columnPointer;
+
+        @Override
+        public boolean hasNext() {
+            for (int row = rowPointer; row < array.length; row++) {
+                for (int column = columnPointer; column < array[row].length; column++) {
+                    if (array[row][column] != null) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public T next() {
+            for (int row = rowPointer; row < array.length; row++) {
+                for (int column = columnPointer; column < array[row].length; column++) {
+                    if (array[row][column] != null) {
+                        if (row > rowPointer) {
+                            rowPointer = row + 1;
+                            columnPointer = 0;
+                        } else {
+                            rowPointer = row;
+                            columnPointer = column + 1;
+                        }
+
+                        return array[row][column];
+                    }
+                }
+            }
+
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+
+        }
     }
 }
