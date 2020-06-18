@@ -26,6 +26,8 @@ public class Leader extends GameObject implements ArrayObserver<Unit> {
     private List<Unit> handUnits = new ArrayList<>();
     private LinkedList<Unit> deckUnits = new LinkedList<>();
 
+    private List<Unit> trashUnits = new ArrayList<>();
+
     private List<Ability> handAbilities = new ArrayList<>();
 
     private boolean isActionable;
@@ -63,6 +65,10 @@ public class Leader extends GameObject implements ArrayObserver<Unit> {
                 }
             }
         }
+    }
+
+    public List<Unit> getTrashUnits() {
+        return trashUnits;
     }
 
     public Race getRace() {
