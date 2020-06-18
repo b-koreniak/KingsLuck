@@ -64,6 +64,33 @@ public class GameManager implements Observable<Message> {
         }
     }
 
+    public Unit duelUsingDeckUnit(int targetRow, int targetColumn) {
+        return duel(targetRow, targetColumn, activeLeader.getDeckUnits().poll());
+    }
+
+    public Unit duel(int targetRow, int targetColumn, Unit attacker) {
+        Unit target = inactiveLeader.getField().get(targetRow, targetColumn);
+
+        Unit looser = DuelManager.duel(attacker, target);
+
+        if (looser != null) {
+            if (looser.equals(target)) {
+                activeLeader.getDeckUnits().add(attacker);
+
+                inactiveLeader.getField().remove(targetRow, targetColumn);
+                inactiveLeader.getTrashUnits().add(target);
+            }
+
+            if (looser.equals(attacker)) {
+                activeLeader.getTrashUnits().add(attacker);
+            }
+        }
+
+        transferTurn();
+
+        return looser;
+    }
+
     public Unit putDeckUnitOnField(int row, int column) {
         return putUnitOnField(row, column, activeLeader.getDeckUnits().poll());
     }
