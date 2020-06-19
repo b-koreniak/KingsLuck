@@ -7,6 +7,7 @@ import koreniak.kingsluck.core.unit.UnitType;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestWatcher;
@@ -14,6 +15,21 @@ import org.junit.runner.Description;
 
 public class GameManagerTest {
     private static final Logger LOGGER = LogManager.getLogger("GameManagerTest");
+
+    Leader playerLeader;
+    Leader enemyLeader;
+
+    GameManager gameManager;
+
+    @Before
+    public void init() {
+        playerLeader = new Leader();
+        enemyLeader = new Leader();
+
+        gameManager = new GameManager(3, 1,
+                playerLeader, enemyLeader,
+                3264234698L, 1288219823L);
+    }
 
     @Rule
     public TestWatcher testWatcher = new TestWatcher() {
@@ -29,58 +45,121 @@ public class GameManagerTest {
     };
 
     @Test
-    public void putUnitOnField() {
-        Leader playerLeader = new Leader();
-        Leader enemyLeader = new Leader();
+    public void transferTurn() {
+        gameManager.transferTurn();
 
-        Unit unitToPut = new Unit();
-        unitToPut.setUnitType(UnitType.ARCHER);
-        unitToPut.setEfficiency(new Attribute(3));
-
-        playerLeader.getDeckUnits().addFirst(unitToPut);
-
-        GameManager gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
-
-        gameManager.putDeckUnitOnField(0, 1);
-
-        Assert.assertEquals(unitToPut, playerLeader.getField().get(0, 1));
+        Assert.assertEquals(1, gameManager.getTurns());
+        Assert.assertEquals(1, playerLeader.getTurnsPlayed());
 
         Assert.assertEquals(playerLeader, gameManager.getInactiveLeader());
         Assert.assertEquals(enemyLeader, gameManager.getActiveLeader());
     }
 
     @Test
-    public void duel() {
-        Leader playerLeader = new Leader();
-        Leader enemyLeader = new Leader();
+    public void skipRound() {
+        gameManager.skipRound();
 
-        Unit target = new Unit();
-        target.setUnitType(UnitType.CAVALRY);
-        target.setEfficiency(new Attribute(7));
+        Assert.assertTrue(playerLeader.isSkippedRound());
+        Assert.assertFalse(playerLeader.isActionable());
+    }
 
-        playerLeader.getDeckUnits().addFirst(target);
+    @Test
+    public void endRound() {
+        gameManager.getActiveLeader().setEfficiency(new Attribute(2));
+        gameManager.getInactiveLeader().setEfficiency(new Attribute(4));
 
-        Unit attacker = new Unit();
-        attacker.setUnitType(UnitType.SWORDSMAN);
-        attacker.setEfficiency(new Attribute(4));
+        gameManager.endRound();
 
-        enemyLeader.getDeckUnits().addFirst(attacker);
+        Assert.assertEquals(0, gameManager.getActiveLeader().getRoundsWon());
+        Assert.assertEquals(1, gameManager.getInactiveLeader().getRoundsWon());
+    }
 
-        GameManager gameManager = new GameManager(3, 1,
+    @Test
+    public void putDeckUnitOnField() {
+        Unit unitToPut = new Unit();
+        unitToPut.setUnitType(UnitType.ARCHER);
+        unitToPut.setEfficiency(new Attribute(3));
+
+        playerLeader.getDeckUnits().addFirst(unitToPut);
+
+        gameManager.putDeckUnitOnField(0, 1);
+
+        Assert.assertEquals(unitToPut, playerLeader.getField().get(0, 1));
+    }
+
+    @Test
+    public void resetLeaders() {
+        Unit playerUnit = new Unit();
+        playerUnit.setUnitType(UnitType.CAVALRY);
+        playerUnit.setEfficiency(new Attribute(7));
+
+        playerLeader.getDeckUnits().addFirst(playerUnit);
+
+        Unit enemyUnit = new Unit();
+        enemyUnit.setUnitType(UnitType.SWORDSMAN);
+        enemyUnit.setEfficiency(new Attribute(4));
+
+        enemyLeader.getDeckUnits().addFirst(enemyUnit);
+
+        gameManager = new GameManager(3, 1,
+                playerLeader, enemyLeader,
+                3264234698L, 1288219823L);
+
+        gameManager.putDeckUnitOnField(0, 0);
+        gameManager.transferTurn();
+
+        gameManager.putDeckUnitOnField(1, 0);
+
+        gameManager.resetLeaders();
+
+        Assert.assertEquals(0, playerLeader.getTurnsPlayed());
+        Assert.assertEquals(0, enemyLeader.getTurnsPlayed());
+
+        Assert.assertTrue(playerLeader.getField().isEmpty());
+        Assert.assertTrue(enemyLeader.getField().isEmpty());
+
+        Assert.assertEquals(playerUnit, playerLeader.getTrashUnits().get(0));
+        Assert.assertEquals(enemyUnit, enemyLeader.getTrashUnits().get(0));
+    }
+
+    @Test
+    public void getGameState() {
+        gameManager.getActiveLeader().setRoundsWon(1);
+
+        GameState gameState = gameManager.getGameState();
+
+        Assert.assertEquals(GameState.State.VICTORY, gameState.getState());
+        Assert.assertEquals(gameManager.getActiveLeader(), gameState.getWinner());
+    }
+
+    @Test
+    public void duelUsingDeckUnit() {
+        Unit playerUnit = new Unit();
+        playerUnit.setUnitType(UnitType.CAVALRY);
+        playerUnit.setEfficiency(new Attribute(7));
+
+        playerLeader.getDeckUnits().addFirst(playerUnit);
+
+        Unit enemyUnit = new Unit();
+        enemyUnit.setUnitType(UnitType.SWORDSMAN);
+        enemyUnit.setEfficiency(new Attribute(4));
+
+        enemyLeader.getDeckUnits().addFirst(enemyUnit);
+
+        gameManager = new GameManager(3, 1,
                 playerLeader, enemyLeader,
                 3264234698L, 1288219823L);
 
         gameManager.putDeckUnitOnField(0, 2);
+        gameManager.transferTurn();
 
         Unit looser = gameManager.duelUsingDeckUnit(0, 2);
 
-        Assert.assertEquals(0, attacker.getEfficiency().getCurrentValue());
-        Assert.assertEquals(2, target.getEfficiency().getCurrentValue());
-        Assert.assertEquals(attacker, looser);
+        Assert.assertEquals(0, enemyUnit.getEfficiency().getCurrentValue());
+        Assert.assertEquals(2, playerUnit.getEfficiency().getCurrentValue());
+        Assert.assertEquals(enemyUnit, looser);
 
-        Assert.assertEquals(target, playerLeader.getField().get(0, 2));
-        Assert.assertEquals(attacker, enemyLeader.getTrashUnits().get(0));
+        Assert.assertEquals(playerUnit, playerLeader.getField().get(0, 2));
+        Assert.assertEquals(enemyUnit, enemyLeader.getTrashUnits().get(0));
     }
 }

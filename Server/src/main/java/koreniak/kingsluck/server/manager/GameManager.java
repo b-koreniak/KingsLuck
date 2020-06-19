@@ -24,16 +24,12 @@ public class GameManager implements Observable<Message> {
     private int maxTurns;
     private int roundsToWin;
 
-    private GameState gameState;
-
     public GameManager(int maxTurns, int roundsToWin, Leader activeLeader, Leader inactiveLeader, long seedForLeader1, long seedForLeader2) {
         this.maxTurns = maxTurns;
         this.roundsToWin = roundsToWin;
 
         this.activeLeader = activeLeader;
         this.inactiveLeader = inactiveLeader;
-
-        gameState = new GameState(GameState.State.CONTINUES);
 
         int uniqueId = 0;
 
@@ -86,8 +82,6 @@ public class GameManager implements Observable<Message> {
             }
         }
 
-        transferTurn();
-
         return looser;
     }
 
@@ -104,37 +98,25 @@ public class GameManager implements Observable<Message> {
 
         activeLeader.getField().add(row, column, unit);
 
-        transferTurn();
-
         return unit;
     }
 
     public void fireAbility(Ability ability, Unit target) {
 
-        transferTurn();
     }
 
     public void fireAbility(Ability ability, Leader target) {
 
-        transferTurn();
     }
 
     public void skipRound() {
         activeLeader.setSkippedRound(true);
         activeLeader.setActionable(false);
-        transferTurn();
     }
 
-    private void transferTurn() {
+    public void transferTurn() {
         turns++;
         activeLeader.setTurnsPlayed(activeLeader.getTurnsPlayed() + 1);
-
-        if ((activeLeader.getTurnsPlayed() == maxTurns && inactiveLeader.getTurnsPlayed() == maxTurns)
-                || (activeLeader.isSkippedRound() && inactiveLeader.isSkippedRound())
-                || (activeLeader.getTurnsPlayed() == maxTurns && inactiveLeader.isSkippedRound())
-                || (activeLeader.isSkippedRound() && inactiveLeader.getTurnsPlayed() == maxTurns)) {
-            endRound();
-        }
 
         if (!inactiveLeader.isSkippedRound()) {
             activeLeader.setActionable(false);
@@ -144,12 +126,9 @@ public class GameManager implements Observable<Message> {
             activeLeader = inactiveLeader;
             inactiveLeader = tempLeader;
         }
-
-        setGameState();
-        notifyObservers(new Message(getGameState(), MessageType.GAME_STATE));
     }
 
-    private void endRound() {
+    public void endRound() {
         if (activeLeader.getEfficiency().getCurrentValue() > inactiveLeader.getEfficiency().getCurrentValue()) {
             activeLeader.setRoundsWon(activeLeader.getRoundsWon() + 1);
         } else if (activeLeader.getEfficiency().getCurrentValue() < inactiveLeader.getEfficiency().getCurrentValue()) {
@@ -158,9 +137,37 @@ public class GameManager implements Observable<Message> {
             activeLeader.setRoundsWon(activeLeader.getRoundsWon() + 1);
             inactiveLeader.setRoundsWon(inactiveLeader.getRoundsWon() + 1);
         }
+    }
 
+    public void resetLeaders() {
         activeLeader.setTurnsPlayed(0);
         inactiveLeader.setTurnsPlayed(0);
+
+        for (Unit unit : activeLeader.getField()) {
+            activeLeader.getTrashUnits().add(unit);
+        }
+        activeLeader.getField().clear();
+
+        for (Unit unit : inactiveLeader.getField()) {
+            inactiveLeader.getTrashUnits().add(unit);
+        }
+        inactiveLeader.getField().clear();
+    }
+
+    public GameState getGameState() {
+        if (activeLeader.getRoundsWon() == roundsToWin && inactiveLeader.getRoundsWon() == roundsToWin) {
+            return new GameState(GameState.State.DRAW);
+        }
+
+        if (activeLeader.getRoundsWon() == roundsToWin) {
+            return new GameState(GameState.State.VICTORY, activeLeader, inactiveLeader);
+        }
+
+        if (inactiveLeader.getRoundsWon() == roundsToWin) {
+            return new GameState(GameState.State.VICTORY, inactiveLeader, activeLeader);
+        }
+
+        return new GameState(GameState.State.CONTINUES);
     }
 
     private List<Observer<Message>> observers = new CopyOnWriteArrayList<>();
@@ -185,22 +192,6 @@ public class GameManager implements Observable<Message> {
     @Override
     public void notifyObservers() {
 
-    }
-
-    public GameState getGameState() {
-        return gameState;
-    }
-
-    private void setGameState() {
-        if (activeLeader.getRoundsWon() == roundsToWin && inactiveLeader.getRoundsWon() == roundsToWin) {
-            gameState = new GameState(GameState.State.DRAW);
-        } else if (activeLeader.getRoundsWon() == roundsToWin) {
-            gameState = new GameState(GameState.State.VICTORY, activeLeader, inactiveLeader);
-        } else if (inactiveLeader.getRoundsWon() == roundsToWin) {
-            gameState = new GameState(GameState.State.VICTORY, inactiveLeader, activeLeader);
-        } else {
-            gameState = new GameState(GameState.State.CONTINUES);
-        }
     }
 
     public int getTurns() {
