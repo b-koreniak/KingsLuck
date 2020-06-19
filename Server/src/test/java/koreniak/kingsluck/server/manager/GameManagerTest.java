@@ -64,17 +64,6 @@ public class GameManagerTest {
     }
 
     @Test
-    public void endRound() {
-        gameManager.getActiveLeader().setEfficiency(new Attribute(2));
-        gameManager.getInactiveLeader().setEfficiency(new Attribute(4));
-
-        gameManager.endRound();
-
-        Assert.assertEquals(0, gameManager.getActiveLeader().getRoundsWon());
-        Assert.assertEquals(1, gameManager.getInactiveLeader().getRoundsWon());
-    }
-
-    @Test
     public void putDeckUnitOnField() {
         Unit unitToPut = new Unit();
         unitToPut.setUnitType(UnitType.ARCHER);

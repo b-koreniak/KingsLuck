@@ -128,15 +128,36 @@ public class GameManager implements Observable<Message> {
         }
     }
 
-    public void endRound() {
-        if (activeLeader.getEfficiency().getCurrentValue() > inactiveLeader.getEfficiency().getCurrentValue()) {
-            activeLeader.setRoundsWon(activeLeader.getRoundsWon() + 1);
-        } else if (activeLeader.getEfficiency().getCurrentValue() < inactiveLeader.getEfficiency().getCurrentValue()) {
-            inactiveLeader.setRoundsWon(inactiveLeader.getRoundsWon() + 1);
-        } else {
-            activeLeader.setRoundsWon(activeLeader.getRoundsWon() + 1);
-            inactiveLeader.setRoundsWon(inactiveLeader.getRoundsWon() + 1);
+    public boolean isEndOfRound() {
+        if (activeLeader.getTurnsPlayed() == maxTurns && inactiveLeader.getTurnsPlayed() == maxTurns) {
+            return true;
         }
+
+        if (activeLeader.getTurnsPlayed() == maxTurns && inactiveLeader.isSkippedRound()) {
+            return true;
+        }
+
+        if (inactiveLeader.getTurnsPlayed() == maxTurns && activeLeader.isSkippedRound()) {
+            return true;
+        }
+
+        if (inactiveLeader.isSkippedRound() && activeLeader.isSkippedRound()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public Leader getRoundWinner() {
+        if (activeLeader.getEfficiency().getCurrentValue() > inactiveLeader.getEfficiency().getCurrentValue()) {
+            return activeLeader;
+        }
+
+        if (activeLeader.getEfficiency().getCurrentValue() < inactiveLeader.getEfficiency().getCurrentValue()) {
+            return inactiveLeader;
+        }
+
+        return null;
     }
 
     public void resetLeaders() {
