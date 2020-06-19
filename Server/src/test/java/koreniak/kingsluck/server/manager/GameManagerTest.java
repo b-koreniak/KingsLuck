@@ -27,8 +27,8 @@ public class GameManagerTest {
         enemyLeader = new Leader();
 
         gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
+                playerLeader, enemyLeader
+        );
     }
 
     @Rule
@@ -91,8 +91,8 @@ public class GameManagerTest {
         enemyLeader.getDeckUnits().addFirst(enemyUnit);
 
         gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
+                playerLeader, enemyLeader
+        );
 
         gameManager.putDeckUnitOnField(0, 0);
         gameManager.transferTurn();
@@ -136,8 +136,8 @@ public class GameManagerTest {
         enemyLeader.getDeckUnits().addFirst(enemyUnit);
 
         gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
+                playerLeader, enemyLeader
+        );
 
         gameManager.putDeckUnitOnField(0, 2);
         gameManager.transferTurn();

@@ -24,7 +24,11 @@ public class GameManager implements Observable<Message> {
     private int maxTurns;
     private int roundsToWin;
 
-    public GameManager(int maxTurns, int roundsToWin, Leader activeLeader, Leader inactiveLeader, long seedForLeader1, long seedForLeader2) {
+    public GameManager(Leader activeLeader, Leader inactiveLeader) {
+        this(6, 2, activeLeader, inactiveLeader);
+    }
+
+    public GameManager(int maxTurns, int roundsToWin, Leader activeLeader, Leader inactiveLeader) {
         this.maxTurns = maxTurns;
         this.roundsToWin = roundsToWin;
 
@@ -33,8 +37,8 @@ public class GameManager implements Observable<Message> {
 
         int uniqueId = 0;
 
-        Collections.shuffle(activeLeader.getDeckUnits(), new Random(seedForLeader1));
-        Collections.shuffle(inactiveLeader.getDeckUnits(), new Random(seedForLeader2));
+        Collections.shuffle(activeLeader.getDeckUnits());
+        Collections.shuffle(inactiveLeader.getDeckUnits());
 
         activeLeader.setUniqueId(uniqueId);
         inactiveLeader.setUniqueId(++uniqueId);
