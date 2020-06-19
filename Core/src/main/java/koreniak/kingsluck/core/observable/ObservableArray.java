@@ -66,6 +66,14 @@ public class ObservableArray<T extends Observable<T>> implements Observer<T>, It
         return true;
     }
 
+    public void clear() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                array[i][j] = null;
+            }
+        }
+    }
+
     @Override
     public Iterator<T> iterator() {
         return new ObservableArrayIterator();
