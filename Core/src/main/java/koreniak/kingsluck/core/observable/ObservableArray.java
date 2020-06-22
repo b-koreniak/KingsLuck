@@ -15,6 +15,9 @@ public class ObservableArray<T extends Observable<T>> implements Observer<T>, It
 
     private T[][] array;
 
+    public ObservableArray() {
+    }
+
     public ObservableArray(int rows, int columns, Class<T> tClass) {
         this.rows = rows;
         this.columns = columns;

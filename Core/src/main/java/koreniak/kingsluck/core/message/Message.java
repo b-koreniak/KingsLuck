@@ -4,6 +4,9 @@ public class Message {
     private Object object;
     private MessageType type;
 
+    public Message() {
+    }
+
     public Message(Object object, MessageType type) {
         this.object = object;
         this.type = type;
