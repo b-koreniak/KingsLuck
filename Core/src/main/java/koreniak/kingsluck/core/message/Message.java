@@ -7,6 +7,10 @@ public class Message {
     public Message() {
     }
 
+    public Message(MessageType type) {
+        this.type = type;
+    }
+
     public Message(Object object, MessageType type) {
         this.object = object;
         this.type = type;
