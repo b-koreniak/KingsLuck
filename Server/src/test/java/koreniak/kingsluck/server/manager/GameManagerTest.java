@@ -27,8 +27,8 @@ public class GameManagerTest {
         enemyLeader = new Leader();
 
         gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
+                playerLeader, enemyLeader
+        );
     }
 
     @Rule
@@ -64,17 +64,6 @@ public class GameManagerTest {
     }
 
     @Test
-    public void endRound() {
-        gameManager.getActiveLeader().setEfficiency(new Attribute(2));
-        gameManager.getInactiveLeader().setEfficiency(new Attribute(4));
-
-        gameManager.endRound();
-
-        Assert.assertEquals(0, gameManager.getActiveLeader().getRoundsWon());
-        Assert.assertEquals(1, gameManager.getInactiveLeader().getRoundsWon());
-    }
-
-    @Test
     public void putDeckUnitOnField() {
         Unit unitToPut = new Unit();
         unitToPut.setUnitType(UnitType.ARCHER);
@@ -102,8 +91,8 @@ public class GameManagerTest {
         enemyLeader.getDeckUnits().addFirst(enemyUnit);
 
         gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
+                playerLeader, enemyLeader
+        );
 
         gameManager.putDeckUnitOnField(0, 0);
         gameManager.transferTurn();
@@ -147,8 +136,8 @@ public class GameManagerTest {
         enemyLeader.getDeckUnits().addFirst(enemyUnit);
 
         gameManager = new GameManager(3, 1,
-                playerLeader, enemyLeader,
-                3264234698L, 1288219823L);
+                playerLeader, enemyLeader
+        );
 
         gameManager.putDeckUnitOnField(0, 2);
         gameManager.transferTurn();
