@@ -4,6 +4,7 @@ import koreniak.kingsluck.core.leader.Leader;
 import koreniak.kingsluck.core.message.Message;
 import koreniak.kingsluck.core.message.MessageType;
 import koreniak.kingsluck.core.net.SessionI;
+import koreniak.kingsluck.core.net.SessionPropertyType;
 import koreniak.kingsluck.core.unit.Unit;
 import koreniak.kingsluck.server.manager.GameManager;
 
@@ -100,6 +101,20 @@ public class Room {
             leaderSessionSecond.getValue().sendMessage(new Message(messageQueue, MessageType.MESSAGE_QUEUE));
         } catch (IOException | EncodeException ignored) {
             // TODO: 6/23/2020 add exception handling
+        }
+    }
+
+    public void handleLeaveGame(SessionI session) {
+        try {
+            if (leaderSessionFirst.getValue().getProperty(SessionPropertyType.SESSION_ID)
+                    .equals(session.getProperty(SessionPropertyType.SESSION_ID))) {
+                leaderSessionSecond.getValue().sendMessage(new Message(leaderSessionFirst.getKey(), MessageType.LEAVED_GAME));
+            } else if (leaderSessionSecond.getValue().getProperty(SessionPropertyType.SESSION_ID)
+                            .equals(session.getProperty(SessionPropertyType.SESSION_ID))) {
+                leaderSessionFirst.getValue().sendMessage(new Message(leaderSessionSecond.getKey(), MessageType.LEAVED_GAME));
+            }
+        } catch (IOException | EncodeException ignored) {
+            // TODO: 6/24/2020 add exception handling
         }
     }
 

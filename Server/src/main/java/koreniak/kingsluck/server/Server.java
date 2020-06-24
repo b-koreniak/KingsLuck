@@ -47,6 +47,14 @@ public class Server {
         }
     }
 
+    public void handleSessionClose(SessionI session) {
+        Integer roomId = (Integer) session.getProperty(SessionPropertyType.ROOM_ID);
+
+        if (roomId != null) {
+            rooms.get(roomId).handleLeaveGame(session);
+        }
+    }
+
     private int nextRoomId;
 
     private Room getRoom(SessionI session, Message message, Integer roomId) {

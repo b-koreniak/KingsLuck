@@ -1,5 +1,5 @@
 package koreniak.kingsluck.core.net;
 
 public enum SessionPropertyType {
-    ROOM_ID
+    SESSION_ID, ROOM_ID
 }

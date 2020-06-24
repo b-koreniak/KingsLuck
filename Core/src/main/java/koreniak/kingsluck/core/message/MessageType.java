@@ -15,5 +15,7 @@ public enum MessageType {
 
     MESSAGE_QUEUE,
 
+    LEAVED_GAME,
+
     GAME_STATE;
 }
