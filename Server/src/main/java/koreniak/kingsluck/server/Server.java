@@ -2,84 +2,58 @@ package koreniak.kingsluck.server;
 
 import koreniak.kingsluck.core.leader.Leader;
 import koreniak.kingsluck.core.message.Message;
+import koreniak.kingsluck.core.message.MessageType;
 import koreniak.kingsluck.core.net.SessionI;
 import koreniak.kingsluck.core.net.SessionPropertyType;
 import koreniak.kingsluck.core.unit.Unit;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
-import java.util.List;
+import javax.websocket.EncodeException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
-    private Map<Integer, Room> rooms = new ConcurrentHashMap<>();
-
-    public void handleMessage(SessionI session, Message message) {
-        Integer roomId = (Integer) session.getProperty(SessionPropertyType.ROOM_ID);
-
-        Room room = getRoom(session, message, roomId);
-
-        switch (message.getType()) {
-            case PUT_UNIT_ON_FIELD: {
-                List<Object> objects = (List) message.getObject();
-
-                int row = (int) objects.get(0);
-                int column = (int) objects.get(1);
-                Unit unit = (Unit) objects.get(2);
-
-                room.putUnitOnField(row, column, unit);
-                break;
-            }
-            case DUEL_ENEMY_UNIT: {
-                List<Object> objects = (List) message.getObject();
-
-                int targetRow = (int) objects.get(0);
-                int targetColumn = (int) objects.get(1);
-                Unit unitAttacker = (Unit) objects.get(2);
-
-                room.duelEnemyUnit(targetRow, targetColumn, unitAttacker);
-                break;
-            }
-            case SKIP_ROUND: {
-                room.skipRound();
-                break;
-            }
-        }
-    }
-
-    public void handleSessionClose(SessionI session) {
-        Integer roomId = (Integer) session.getProperty(SessionPropertyType.ROOM_ID);
-
-        if (roomId != null) {
-            rooms.get(roomId).handleLeaveGame(session);
-        }
-    }
+    private BeanFactory beanFactory = new GenericXmlApplicationContext("game/game-bean.xml");
 
     private int nextRoomId;
 
-    private Room getRoom(SessionI session, Message message, Integer roomId) {
+    private Map<Integer, Room> rooms = new ConcurrentHashMap<>();
+
+    public void handleMessage(SessionI session, Message message) throws IOException, EncodeException {
+        Integer roomId = (Integer) session.getProperty(SessionPropertyType.ROOM_ID);
+
         Room room;
-        if (roomId != null) {
+
+        if (rooms.containsKey(roomId)) {
             room = rooms.get(roomId);
         } else {
             Optional<Room> emptyRoom = rooms.values().stream()
                     .filter(filteredRoom -> !filteredRoom.isFilled())
                     .findFirst();
 
-            Leader leader = (Leader) message.getObject();
+            String playerNickname = (String) message.getObject();
 
             if (emptyRoom.isPresent()) {
                 room = emptyRoom.get();
 
-                room.addLeader(leader, session);
+                room.addPlayer(playerNickname, session);
 
                 if (room.isFilled()) {
-                    room.startGame();
+                    Leader leaderFirst = beanFactory.getBean("humanCommander", Leader.class);
+                    Leader leaderSecond = beanFactory.getBean("humanCommander", Leader.class);
+
+                    room.initializeGameManager(leaderFirst, leaderSecond);
+
+                    room.getPlayerSessionFirst().getValue().sendMessage(new Message(leaderFirst, MessageType.START_GAME));
+                    room.getPlayerSessionSecond().getValue().sendMessage(new Message(leaderSecond, MessageType.START_GAME));
                 }
             } else {
                 room = new Room();
 
-                room.addLeader(leader, session);
+                room.addPlayer(playerNickname, session);
 
                 rooms.put(nextRoomId, room);
                 session.addProperty(SessionPropertyType.ROOM_ID, nextRoomId);
@@ -87,6 +61,60 @@ public class Server {
                 nextRoomId++;
             }
         }
-        return room;
+
+        switch (message.getType()) {
+            case PUT_UNIT_ON_FIELD: {
+                Object[] objects = (Object[]) message.getObject();
+
+                int row = (int) objects[0];
+                int column = (int) objects[1];
+                Unit unit = (Unit) objects[2];
+
+                Message roomMessage = room.getPutUnitOnFieldMessage(row, column, unit);
+                room.sendBroadcastMessage(roomMessage);
+                break;
+            }
+            case DUEL_ENEMY_UNIT: {
+                Object[] objects = (Object[]) message.getObject();
+
+                int targetRow = (int) objects[0];
+                int targetColumn = (int) objects[1];
+                Unit unitAttacker = (Unit) objects[2];
+
+                Message roomMessage = room.getDuelEnemyUnitMessage(targetRow, targetColumn, unitAttacker);
+                room.sendBroadcastMessage(roomMessage);
+                break;
+            }
+            case SKIP_ROUND: {
+                Message roomMessage = room.getSkipRoundMessage();
+                room.sendBroadcastMessage(roomMessage);
+                break;
+            }
+        }
+    }
+
+    public void handleSessionClose(SessionI session) throws IOException, EncodeException {
+        Integer roomId = (Integer) session.getProperty(SessionPropertyType.ROOM_ID);
+
+        if (rooms.containsKey(roomId)) {
+            Room room = rooms.get(roomId);
+
+            if (room.isFilled()) {
+                String leavedPlayerNickname;
+
+                if (room.getPlayerSessionFirst().getValue().getProperty(SessionPropertyType.SESSION_ID)
+                        .equals(session.getProperty(SessionPropertyType.SESSION_ID))) {
+                    leavedPlayerNickname = room.getPlayerSessionFirst().getKey();
+                } else {
+                    leavedPlayerNickname = room.getPlayerSessionSecond().getKey();
+                }
+
+                room.sendBroadcastMessage(new Message(leavedPlayerNickname, MessageType.LEAVED_GAME));
+            }
+
+            rooms.remove(roomId);
+        }
+
+        session.sendMessage(new Message(MessageType.CONNECTION_LOST));
     }
 }

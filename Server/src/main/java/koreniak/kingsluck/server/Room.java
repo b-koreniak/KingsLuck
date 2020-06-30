@@ -4,7 +4,6 @@ import koreniak.kingsluck.core.leader.Leader;
 import koreniak.kingsluck.core.message.Message;
 import koreniak.kingsluck.core.message.MessageType;
 import koreniak.kingsluck.core.net.SessionI;
-import koreniak.kingsluck.core.net.SessionPropertyType;
 import koreniak.kingsluck.core.unit.Unit;
 import koreniak.kingsluck.server.manager.GameManager;
 
@@ -13,134 +12,113 @@ import java.io.IOException;
 import java.util.*;
 
 public class Room {
-    private Map.Entry<Leader, SessionI> leaderSessionFirst;
-    private Map.Entry<Leader, SessionI> leaderSessionSecond;
+    private Map.Entry<String, SessionI> playerSessionFirst;
+    private Map.Entry<String, SessionI> playerSessionSecond;
 
     private GameManager gameManager;
 
-    private Queue<Message> messageQueue;
-
-    public Room() {
-        messageQueue = new ArrayDeque<>();
-    }
-
-    public void addLeader(Leader leader, SessionI sessionI) {
-        if (leaderSessionFirst == null) {
-            leaderSessionFirst = new AbstractMap.SimpleEntry<>(leader, sessionI);
-        } else if (leaderSessionSecond == null) {
-            leaderSessionSecond = new AbstractMap.SimpleEntry<>(leader, sessionI);
+    public void addPlayer(String playerNickname, SessionI sessionI) {
+        if (playerSessionFirst == null) {
+            playerSessionFirst = new AbstractMap.SimpleEntry<>(playerNickname, sessionI);
+        } else if (playerSessionSecond == null) {
+            playerSessionSecond = new AbstractMap.SimpleEntry<>(playerNickname, sessionI);
         }
     }
 
     public boolean isFilled() {
-        return leaderSessionFirst != null && leaderSessionSecond != null;
+        return playerSessionFirst != null && playerSessionSecond != null;
     }
 
-    public void startGame() {
-        gameManager = new GameManager(leaderSessionFirst.getKey(), leaderSessionSecond.getKey());
-
-        addLeadersToMessageQueue();
-        messageQueue.add(new Message(MessageType.START_GAME));
-        sendMessageQueue();
+    public void initializeGameManager(Leader activeLeader, Leader inactiveLeader) {
+        gameManager = new GameManager(activeLeader, inactiveLeader);
     }
 
-    public void putUnitOnField(int row, int column, Unit unit) {
+    public Message getPutUnitOnFieldMessage(int row, int column, Unit unit) {
         gameManager.putUnitOnField(row, column, unit);
         gameManager.transferTurn();
 
+        Queue<Message> messages = new ArrayDeque<>();
+
+        Object[] objects = new Object[3];
+        objects[0] = row;
+        objects[1] = column;
+        objects[2] = unit;
+        messages.add(new Message(objects, MessageType.PUT_UNIT_ON_FIELD));
+
         if (gameManager.isEndOfRound()) {
             setRoundsWon();
-            handleGameState();
+            addGameStateMessage(messages);
         }
 
-        addLeadersToMessageQueue();
-        List<Object> objects = new ArrayList<>();
-        objects.add(row);
-        objects.add(column);
-        objects.add(unit);
-        messageQueue.add(new Message(objects, MessageType.PUT_UNIT_ON_FIELD));
+        messages.add(new Message(gameManager.getActiveLeader(), MessageType.LEADER_INFO));
+        messages.add(new Message(gameManager.getInactiveLeader(), MessageType.LEADER_INFO));
 
-        sendMessageQueue();
+        return new Message(messages, MessageType.MESSAGE_QUEUE);
     }
 
-    public void duelEnemyUnit(int targetRow, int targetColumn, Unit attacker) {
+    public Message getDuelEnemyUnitMessage(int targetRow, int targetColumn, Unit attacker) {
         gameManager.duel(targetRow, targetColumn, attacker);
         gameManager.transferTurn();
 
+        Queue<Message> messages = new ArrayDeque<>();
+
+        Object[] objects = new Object[3];
+        objects[0] = targetRow;
+        objects[1] = targetColumn;
+        objects[2] = attacker;
+        messages.add(new Message(objects, MessageType.DUEL_ENEMY_UNIT));
+
         if (gameManager.isEndOfRound()) {
             setRoundsWon();
-            handleGameState();
+            addGameStateMessage(messages);
         }
 
-        addLeadersToMessageQueue();
-        List<Object> objects = new ArrayList<>();
-        objects.add(targetRow);
-        objects.add(targetColumn);
-        objects.add(attacker);
-        messageQueue.add(new Message(objects, MessageType.DUEL_ENEMY_UNIT));
+        messages.add(new Message(gameManager.getActiveLeader(), MessageType.LEADER_INFO));
+        messages.add(new Message(gameManager.getInactiveLeader(), MessageType.LEADER_INFO));
 
-        sendMessageQueue();
+        return new Message(messages, MessageType.MESSAGE_QUEUE);
     }
 
-    public void skipRound() {
+    public Message getSkipRoundMessage() {
         gameManager.skipRound();
         gameManager.transferTurn();
 
+        Queue<Message> messages = new ArrayDeque<>();
+
         if (gameManager.isEndOfRound()) {
             setRoundsWon();
-            handleGameState();
+            addGameStateMessage(messages);
         }
 
-        addLeadersToMessageQueue();
-        sendMessageQueue();
+        messages.add(new Message(gameManager.getActiveLeader(), MessageType.LEADER_INFO));
+        messages.add(new Message(gameManager.getInactiveLeader(), MessageType.LEADER_INFO));
+
+        return new Message(messages, MessageType.MESSAGE_QUEUE);
     }
 
-    public void sendMessageQueue() {
-        try {
-            leaderSessionFirst.getValue().sendMessage(new Message(messageQueue, MessageType.MESSAGE_QUEUE));
-            leaderSessionSecond.getValue().sendMessage(new Message(messageQueue, MessageType.MESSAGE_QUEUE));
-        } catch (IOException | EncodeException ignored) {
-            // TODO: 6/23/2020 add exception handling
-        }
+    public void sendBroadcastMessage(Message message) throws IOException, EncodeException {
+        playerSessionFirst.getValue().sendMessage(message);
+        playerSessionSecond.getValue().sendMessage(message);
     }
 
-    public void handleLeaveGame(SessionI session) {
-        try {
-            if (leaderSessionFirst.getValue().getProperty(SessionPropertyType.SESSION_ID)
-                    .equals(session.getProperty(SessionPropertyType.SESSION_ID))) {
-                leaderSessionSecond.getValue().sendMessage(new Message(leaderSessionFirst.getKey(), MessageType.LEAVED_GAME));
-            } else if (leaderSessionSecond.getValue().getProperty(SessionPropertyType.SESSION_ID)
-                            .equals(session.getProperty(SessionPropertyType.SESSION_ID))) {
-                leaderSessionFirst.getValue().sendMessage(new Message(leaderSessionSecond.getKey(), MessageType.LEAVED_GAME));
-            }
-        } catch (IOException | EncodeException ignored) {
-            // TODO: 6/24/2020 add exception handling
-        }
-    }
-
-    private void addLeadersToMessageQueue() {
-        messageQueue.add(new Message(leaderSessionFirst.getKey(), MessageType.LEADER_INFO));
-        messageQueue.add(new Message(leaderSessionSecond.getKey(), MessageType.LEADER_INFO));
-    }
-
-    private void handleGameState() {
+    private void addGameStateMessage(Queue<Message> messages) {
         switch (gameManager.getGameState().getState()) {
-            case CONTINUES: {
-                Leader winner = gameManager.getRoundWinner();
-
-                if (winner != null) {
-                    messageQueue.add(new Message(winner, MessageType.ROUND_VICTORY));
-                } else {
-                    messageQueue.add(new Message(MessageType.ROUND_DRAW));
-                }
-                break;
-            }
             case VICTORY: {
-                messageQueue.add(new Message(gameManager.getGameState().getWinner(), MessageType.GAME_VICTORY));
+                messages.add(new Message(gameManager.getGameState().getWinner(), MessageType.GAME_VICTORY));
                 break;
             }
             case DRAW: {
-                messageQueue.add(new Message(MessageType.GAME_DRAW));
+                messages.add(new Message(MessageType.GAME_DRAW));
+                break;
+            }
+            case CONTINUES: {
+                Leader roundWinner = gameManager.getRoundWinner();
+
+                if (roundWinner != null) {
+                    messages.add(new Message(roundWinner, MessageType.ROUND_VICTORY));
+                } else {
+                    messages.add(new Message(MessageType.ROUND_DRAW));
+                }
                 break;
             }
         }
@@ -157,11 +135,11 @@ public class Room {
         }
     }
 
-    public Map.Entry<Leader, SessionI> getLeaderSessionFirst() {
-        return leaderSessionFirst;
+    public Map.Entry<String, SessionI> getPlayerSessionFirst() {
+        return playerSessionFirst;
     }
 
-    public Map.Entry<Leader, SessionI> getLeaderSessionSecond() {
-        return leaderSessionSecond;
+    public Map.Entry<String, SessionI> getPlayerSessionSecond() {
+        return playerSessionSecond;
     }
 }
