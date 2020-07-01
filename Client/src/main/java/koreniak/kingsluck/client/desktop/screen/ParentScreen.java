@@ -29,4 +29,23 @@ public class ParentScreen extends StackPane {
             LOGGER.error("loadScreen exception", e);
         }
     }
+
+    public void loadScreen(String resource, ScreenController controller) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(resource));
+        controller.setParentScreen(this);
+        loader.setController(controller);
+
+        Parent parent = loader.load();
+
+        getChildren().clear();
+        getChildren().add(parent);
+    }
+
+    public void loadScreen(ScreenType type, ScreenController controller) {
+        try {
+            loadScreen(ScreenFactory.getScreenResource(type), controller);
+        } catch (IOException e) {
+            LOGGER.error("loadScreen exception", e);
+        }
+    }
 }
