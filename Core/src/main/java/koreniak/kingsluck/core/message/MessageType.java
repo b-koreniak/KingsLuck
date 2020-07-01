@@ -3,7 +3,7 @@ package koreniak.kingsluck.core.message;
 public enum MessageType {
     DEFAULT,
 
-    CONNECTION_LOST,
+    CONNECTION_REQUEST, CONNECTION_ESTABLISHED, CONNECTION_LOST,
 
     START_GAME, END_GAME,
 
