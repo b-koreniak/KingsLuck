@@ -19,6 +19,8 @@ public class WaitScreenController implements Observer<Message>, ScreenController
 
     private ParentScreen parentScreen;
 
+    private Thread requestThread;
+
     @FXML
     private Button buttonCancel;
 
@@ -28,7 +30,13 @@ public class WaitScreenController implements Observer<Message>, ScreenController
 
         });
 
-        client.sendMessage(new Message(MessageType.START_GAME_REQUEST));
+        requestThread = new Thread(() -> {
+            while (!requestThread.isInterrupted()) {
+                client.sendMessage(new Message(MessageType.START_GAME_REQUEST));
+            }
+        });
+        requestThread.setDaemon(true);
+        requestThread.start();
     }
 
     @Override
@@ -39,6 +47,8 @@ public class WaitScreenController implements Observer<Message>, ScreenController
 
                 Leader playerLeader = (Leader) leaders[0];
                 Leader opponentLeader = (Leader) leaders[1];
+
+                requestThread.interrupt();
 
                 Platform.runLater(() -> {
                     parentScreen.loadScreen(ScreenType.BATTLEFIELD, new BattlefieldScreenController(playerLeader, opponentLeader));
