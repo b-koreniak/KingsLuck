@@ -40,16 +40,6 @@ public class Server {
                 room = emptyRoom.get();
 
                 room.addPlayer(playerNickname, session);
-
-                if (room.isFilled()) {
-                    Leader leaderFirst = beanFactory.getBean("humanCommander", Leader.class);
-                    Leader leaderSecond = beanFactory.getBean("humanCommander", Leader.class);
-
-                    room.initializeGameManager(leaderFirst, leaderSecond);
-
-                    room.getPlayerSessionFirst().getValue().sendMessage(new Message(leaderFirst, MessageType.START_GAME));
-                    room.getPlayerSessionSecond().getValue().sendMessage(new Message(leaderSecond, MessageType.START_GAME));
-                }
             } else {
                 room = new Room();
 
@@ -63,7 +53,25 @@ public class Server {
         }
 
         switch (message.getType()) {
-            case PUT_UNIT_ON_FIELD: {
+            case CONNECTION_REQUEST: {
+                session.sendMessage(new Message(MessageType.CONNECTION_ESTABLISHED));
+                break;
+            }
+            case START_GAME_REQUEST: {
+                if (room.isFilled()) {
+                    Leader leaderFirst = beanFactory.getBean("humanCommander", Leader.class);
+                    Leader leaderSecond = beanFactory.getBean("humanCommander", Leader.class);
+
+                    room.initializeGameManager(leaderFirst, leaderSecond);
+
+                    room.getPlayerSessionFirst().getValue().sendMessage(
+                            new Message(new Object[] { leaderFirst, leaderSecond }, MessageType.START_GAME_RESPONSE));
+                    room.getPlayerSessionSecond().getValue().sendMessage(
+                            new Message(new Object[] { leaderSecond, leaderFirst }, MessageType.START_GAME_RESPONSE));
+                }
+                break;
+            }
+            case PUT_UNIT_ON_FIELD_REQUEST: {
                 Object[] objects = (Object[]) message.getObject();
 
                 int row = (int) objects[0];

@@ -39,11 +39,12 @@ public class Room {
 
         Queue<Message> messages = new ArrayDeque<>();
 
-        Object[] objects = new Object[3];
-        objects[0] = row;
-        objects[1] = column;
-        objects[2] = unit;
-        messages.add(new Message(objects, MessageType.PUT_UNIT_ON_FIELD));
+        Object[] objects = new Object[4];
+        objects[0] = gameManager.getInactiveLeader();
+        objects[1] = row;
+        objects[2] = column;
+        objects[3] = unit;
+        messages.add(new Message(objects, MessageType.PUT_UNIT_ON_FIELD_RESPONSE));
 
         if (gameManager.isEndOfRound()) {
             setRoundsWon();
